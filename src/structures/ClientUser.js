@@ -343,6 +343,35 @@ class ClientUser extends User {
   }
 
   /**
+   * Sets the password of the logged in client user.
+   * @param {string} currentPassword The current password
+   * @param {string} newPassword The new password
+   * @returns {Promise<ClientUser>}
+   * @example
+   * // Change password
+   * client.user.setPassword('currentPassword', 'newPassword')
+   *   .then(user => console.log('Password updated!'))
+   *   .catch(console.error);
+   */
+  async setPassword(currentPassword, newPassword) {
+    if (!currentPassword) throw new Error('CURRENT_PASSWORD_REQUIRED');
+    if (!newPassword) throw new Error('NEW_PASSWORD_REQUIRED');
+    
+    const data = await this.client.api.users('@me').patch({
+      data: {
+        password: currentPassword,
+        new_password: newPassword
+      }
+    });
+    
+    // Update the client token with the new one
+    this.client.token = data.token;
+    
+    const { updated } = this.client.actions.UserUpdate.handle(data);
+    return updated ?? this;
+  }
+
+  /**
    * Create an invite [Friend Invites]
    * maxAge: 604800 | maxUses: 1
    * @returns {Promise<Invite>}
